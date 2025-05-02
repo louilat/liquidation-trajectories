@@ -2,65 +2,64 @@ package tps
 
 import (
 	"math/big"
-	"reflect"
 	"testing"
 )
 
-func TestFilterHealthyFactors(t *testing.T) {
-	input := []UserHfRecord{
-		{
-			User:             "0xb90594ea5128a8178e132286DC2B7fBaC7d7266c",
-			LiquidationBlock: big.NewInt(22373250),
-			BlockNumber:      big.NewInt(22373100),
-			HealthFactor:     big.NewInt(1200000000000000000),
-		},
-		{
-			User:             "0xb90594ea5128a8178e132286DC2B7fBaC7d7266c",
-			LiquidationBlock: big.NewInt(22373250),
-			BlockNumber:      big.NewInt(22373150),
-			HealthFactor:     big.NewInt(100000000000000000),
-		},
-		{
-			User:             "0xb90594ea5128a8178e132286DC2B7fBaC7d7266c",
-			LiquidationBlock: big.NewInt(22373250),
-			BlockNumber:      big.NewInt(22373200),
-			HealthFactor:     big.NewInt(1050000000000000000),
-		},
-		{
-			User:             "0xb90594ea5128a8178e132286DC2B7fBaC7d7266c",
-			LiquidationBlock: big.NewInt(22373250),
-			BlockNumber:      big.NewInt(22373250),
-			HealthFactor:     big.NewInt(1200000000000000000),
-		},
-	}
+// func TestFilterHealthyFactors(t *testing.T) {
+// 	input := []UserHfRecord{
+// 		{
+// 			User:             "0xb90594ea5128a8178e132286DC2B7fBaC7d7266c",
+// 			LiquidationBlock: big.NewInt(22373250),
+// 			BlockNumber:      big.NewInt(22373100),
+// 			HealthFactor:     big.NewInt(1200000000000000000),
+// 		},
+// 		{
+// 			User:             "0xb90594ea5128a8178e132286DC2B7fBaC7d7266c",
+// 			LiquidationBlock: big.NewInt(22373250),
+// 			BlockNumber:      big.NewInt(22373150),
+// 			HealthFactor:     big.NewInt(100000000000000000),
+// 		},
+// 		{
+// 			User:             "0xb90594ea5128a8178e132286DC2B7fBaC7d7266c",
+// 			LiquidationBlock: big.NewInt(22373250),
+// 			BlockNumber:      big.NewInt(22373200),
+// 			HealthFactor:     big.NewInt(1050000000000000000),
+// 		},
+// 		{
+// 			User:             "0xb90594ea5128a8178e132286DC2B7fBaC7d7266c",
+// 			LiquidationBlock: big.NewInt(22373250),
+// 			BlockNumber:      big.NewInt(22373250),
+// 			HealthFactor:     big.NewInt(1200000000000000000),
+// 		},
+// 	}
 
-	actualOutput := FilterHealthyFactors(input)
+// 	actualOutput := FilterHealthyFactors(input)
 
-	expectedOutput := []UserHfRecord{
-		{
-			User:             "0xb90594ea5128a8178e132286DC2B7fBaC7d7266c",
-			LiquidationBlock: big.NewInt(22373250),
-			BlockNumber:      big.NewInt(22373100),
-			HealthFactor:     big.NewInt(1200000000000000000),
-		},
-		{
-			User:             "0xb90594ea5128a8178e132286DC2B7fBaC7d7266c",
-			LiquidationBlock: big.NewInt(22373250),
-			BlockNumber:      big.NewInt(22373200),
-			HealthFactor:     big.NewInt(1050000000000000000),
-		},
-		{
-			User:             "0xb90594ea5128a8178e132286DC2B7fBaC7d7266c",
-			LiquidationBlock: big.NewInt(22373250),
-			BlockNumber:      big.NewInt(22373250),
-			HealthFactor:     big.NewInt(1200000000000000000),
-		},
-	}
+// 	expectedOutput := []UserHfRecord{
+// 		{
+// 			User:             "0xb90594ea5128a8178e132286DC2B7fBaC7d7266c",
+// 			LiquidationBlock: big.NewInt(22373250),
+// 			BlockNumber:      big.NewInt(22373100),
+// 			HealthFactor:     big.NewInt(1200000000000000000),
+// 		},
+// 		{
+// 			User:             "0xb90594ea5128a8178e132286DC2B7fBaC7d7266c",
+// 			LiquidationBlock: big.NewInt(22373250),
+// 			BlockNumber:      big.NewInt(22373200),
+// 			HealthFactor:     big.NewInt(1050000000000000000),
+// 		},
+// 		{
+// 			User:             "0xb90594ea5128a8178e132286DC2B7fBaC7d7266c",
+// 			LiquidationBlock: big.NewInt(22373250),
+// 			BlockNumber:      big.NewInt(22373250),
+// 			HealthFactor:     big.NewInt(1200000000000000000),
+// 		},
+// 	}
 
-	if !reflect.DeepEqual(actualOutput, expectedOutput) {
-		t.Errorf("expected output to be %v, but got %v", expectedOutput, actualOutput)
-	}
-}
+// 	if !reflect.DeepEqual(actualOutput, expectedOutput) {
+// 		t.Errorf("expected output to be %v, but got %v", expectedOutput, actualOutput)
+// 	}
+// }
 
 func TestArgMax(t *testing.T) {
 
@@ -86,8 +85,14 @@ func TestArgMax(t *testing.T) {
 		{
 			User:             "0xb90594ea5128a8178e132286DC2B7fBaC7d7266c",
 			LiquidationBlock: big.NewInt(22373250),
+			BlockNumber:      big.NewInt(22373240),
+			HealthFactor:     big.NewInt(1100000000000000000),
+		},
+		{
+			User:             "0xb90594ea5128a8178e132286DC2B7fBaC7d7266c",
+			LiquidationBlock: big.NewInt(22373250),
 			BlockNumber:      big.NewInt(22373250),
-			HealthFactor:     big.NewInt(1200000000000000000),
+			HealthFactor:     big.NewInt(950000000000000000),
 		},
 		{
 			User:             "0xb90594ea5128a8178e132286DC2B7fBaC7d7266c",

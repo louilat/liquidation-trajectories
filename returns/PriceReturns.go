@@ -15,7 +15,7 @@ import (
 )
 
 func getHfDropBounds(t []tps.UserHfRecord) (tps.HfDropBlock, error) {
-	index, err := tps.ArgMax(tps.FilterHealthyFactors(t[:len(t)-1]))
+	index, err := tps.ArgMax(t[:len(t)-1])
 	if err != nil {
 		return tps.HfDropBlock{}, err
 	}
@@ -58,7 +58,9 @@ func GetHfDropBlock(pool *pool.Pool, t []tps.UserHfRecord) (tps.HfDropBlock, err
 func GetHfDropBlocks(pool *pool.Pool, trj map[tps.LiquidationRecord][]tps.UserHfRecord) ([]tps.HfDropBlock, error) {
 	var wg sync.WaitGroup
 	var agg tps.HfDropBlockAggregator
+	guard := make(chan struct{}, 2)
 	for liq, t := range trj {
+		guard <- struct{}{}
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
@@ -71,6 +73,7 @@ func GetHfDropBlocks(pool *pool.Pool, trj map[tps.LiquidationRecord][]tps.UserHf
 			} else {
 				agg.Extend(db)
 			}
+			<-guard
 		}()
 	}
 	wg.Wait()

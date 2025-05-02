@@ -81,8 +81,12 @@ type UserHfRecord struct {
 	HealthFactor                *big.Int `json:"healthFactor"`
 }
 
-func (liqrec *UserHfRecord) IsLess(r *UserHfRecord) bool {
-	return liqrec.BlockNumber.Cmp(r.BlockNumber) < 0
+func (rec *UserHfRecord) IsLess(r *UserHfRecord) bool {
+	return rec.BlockNumber.Cmp(r.BlockNumber) < 0
+}
+
+func (rec *UserHfRecord) IsHealthy() bool {
+	return rec.HealthFactor.Cmp(big.NewInt(1000000000000000000)) > 0
 }
 
 func ArgMax(r []UserHfRecord) (int, error) {
@@ -91,22 +95,25 @@ func ArgMax(r []UserHfRecord) (int, error) {
 	}
 	max := 0
 	for i, rec := range r {
-		if r[max].IsLess(&rec) {
+		if r[max].IsLess(&rec) && rec.IsHealthy() {
 			max = i
 		}
 	}
-	return max, nil
+	if max > 0 || r[0].IsHealthy() {
+		return max, nil
+	}
+	return 0, errors.New("could not find healthy hf in slice")
 }
 
-func FilterHealthyFactors(r []UserHfRecord) []UserHfRecord {
-	var hhf []UserHfRecord
-	for _, rec := range r {
-		if rec.HealthFactor.Cmp(big.NewInt(1000000000000000000)) > 0 {
-			hhf = append(hhf, rec)
-		}
-	}
-	return hhf
-}
+// func FilterHealthyFactors(r []UserHfRecord) []UserHfRecord {
+// 	var hhf []UserHfRecord
+// 	for _, rec := range r {
+// 		if rec.HealthFactor.Cmp(big.NewInt(1000000000000000000)) > 0 {
+// 			hhf = append(hhf, rec)
+// 		}
+// 	}
+// 	return hhf
+// }
 
 // Slice of records with safe access
 type UserHfRecordAggregator struct {
