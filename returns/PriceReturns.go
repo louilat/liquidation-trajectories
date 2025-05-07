@@ -101,7 +101,9 @@ func GetPricesReturns(oracle *oracle.Oracle, db []tps.HfDropBlock, assets []comm
 		if b.DropBlock == nil {
 			continue
 		}
-		p, err := oracle.GetAssetsPrices(&bind.CallOpts{BlockNumber: b.DropBlock}, assets)
+		block := new(big.Int)
+		block.Sub(b.DropBlock, big.NewInt(300))
+		p, err := oracle.GetAssetsPrices(&bind.CallOpts{BlockNumber: block}, assets)
 		if err != nil {
 			return make([]tps.PriceReturnRecord, 0), err
 		}

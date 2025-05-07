@@ -13,6 +13,8 @@ import (
 )
 
 func Etl(start, stop time.Time, pool *pool.Pool, oracle *oracle.Oracle) error {
+	date_str := start.String()[:7]
+	fmt.Printf("Starting ETL for month %v...\n", date_str)
 	// Extract liquidation events
 	liq, err := apirequest.GetAllLiquidations(start, stop, true, true)
 	if err != nil {
@@ -23,7 +25,7 @@ func Etl(start, stop time.Time, pool *pool.Pool, oracle *oracle.Oracle) error {
 
 	trajectories := hftrajectory.GetUserHfTrajectories(pool, liq)
 
-	err = hftrajectory.SaveUserHfTrajectories(trajectories, "./outputs")
+	err = hftrajectory.SaveUserHfTrajectories(trajectories, "./outputs2/outputs_"+date_str)
 	if err != nil {
 		return err
 	}
@@ -35,7 +37,7 @@ func Etl(start, stop time.Time, pool *pool.Pool, oracle *oracle.Oracle) error {
 	if err != nil {
 		return err
 	}
-	err = returns.SaveHfDropBlocks(drpblocks, "./outputs")
+	err = returns.SaveHfDropBlocks(drpblocks, "./outputs2/outputs_"+date_str)
 	if err != nil {
 		return err
 	}
@@ -50,7 +52,7 @@ func Etl(start, stop time.Time, pool *pool.Pool, oracle *oracle.Oracle) error {
 	if err != nil {
 		return err
 	}
-	err = returns.SavePriceReturns(prc_returns, "./outputs")
+	err = returns.SavePriceReturns(prc_returns, "./outputs2/outputs_"+date_str)
 	if err != nil {
 		return err
 	}

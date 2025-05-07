@@ -18,8 +18,6 @@ func GetLiquidations(date time.Time, unique bool) ([]tps.LiquidationRecord, erro
 	client := &http.Client{Transport: tr}
 
 	dtstr := date.Format("2006-Jan-02")
-	// fmt.Println(date)
-	// fmt.Println(dtstr)
 
 	req, err := http.NewRequest("GET", "https://aavedata.lab.groupe-genes.fr/events/liquidation?date="+dtstr, nil)
 	if err != nil {
@@ -59,7 +57,7 @@ func GetAllLiquidations(start, stop time.Time, unique, verbose bool) ([]tps.Liqu
 	if verbose {
 		fmt.Printf("Extracting liquidations from %v to %v", start, stop)
 	}
-	for day := start; day.Compare(stop) == -1; day = day.Add(time.Hour * 24) {
+	for day := start; day.Compare(stop) == -1; day = day.AddDate(0, 0, 1) {
 		if verbose {
 			fmt.Printf(".")
 		}
@@ -70,5 +68,6 @@ func GetAllLiquidations(start, stop time.Time, unique, verbose bool) ([]tps.Liqu
 		liq = append(liq, liqday...)
 	}
 	fmt.Printf("Done!\n")
+	fmt.Printf("Found %v liquidation events\n", len(liq))
 	return liq, nil
 }

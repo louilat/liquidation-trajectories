@@ -105,16 +105,6 @@ func ArgMax(r []UserHfRecord) (int, error) {
 	return 0, errors.New("could not find healthy hf in slice")
 }
 
-// func FilterHealthyFactors(r []UserHfRecord) []UserHfRecord {
-// 	var hhf []UserHfRecord
-// 	for _, rec := range r {
-// 		if rec.HealthFactor.Cmp(big.NewInt(1000000000000000000)) > 0 {
-// 			hhf = append(hhf, rec)
-// 		}
-// 	}
-// 	return hhf
-// }
-
 // Slice of records with safe access
 type UserHfRecordAggregator struct {
 	mu      sync.Mutex

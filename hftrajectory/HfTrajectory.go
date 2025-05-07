@@ -47,16 +47,19 @@ func GetUserHfTrajectories(pool *pool.Pool, liq []tps.LiquidationRecord) map[tps
 	trajectories.Records = make(map[tps.LiquidationRecord][]tps.UserHfRecord)
 
 	var wg sync.WaitGroup
+	guard := make(chan struct{}, 4)
 	for i := range liq {
 		wg.Add(1)
 		go func() {
+			guard <- struct{}{}
 			defer wg.Done()
-			fmt.Println(liq[i])
+			// fmt.Println(liq[i])
 			ut, err := GetUserHfTrajectory(pool, liq[i])
 			if err != nil {
 				panic(err)
 			}
 			trajectories.Extend(liq[i], ut[:])
+			<-guard
 		}()
 	}
 	wg.Wait()

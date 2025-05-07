@@ -11,10 +11,7 @@ import (
 )
 
 func main() {
-	fmt.Printf("Starting ETL...\n")
-
-	start := time.Date(2025, 1, 1, 0, 0, 0, 0, time.UTC)
-	stop := time.Date(2025, 2, 1, 0, 0, 0, 0, time.UTC)
+	fmt.Printf("Starting Job...\n")
 
 	// Connect to eth node
 	client, err := ethclient.Dial("")
@@ -35,8 +32,13 @@ func main() {
 	}
 
 	// Run ETL
-	err = Etl(start, stop, pool_ctr, orl)
-	if err != nil {
-		panic(err)
+	start := time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC)
+	stop := time.Date(2025, 1, 1, 0, 0, 0, 0, time.UTC)
+	for ; start.Before(stop); start = start.AddDate(0, 1, 0) {
+		end := start.AddDate(0, 1, 0)
+		err = Etl(start, end, pool_ctr, orl)
+		if err != nil {
+			panic(err)
+		}
 	}
 }
