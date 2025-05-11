@@ -2,6 +2,7 @@ package hftrajectory
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"liquidation-trajectories/pool"
 	"liquidation-trajectories/tps"
@@ -13,23 +14,27 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 )
 
-// Extracts the HF trajectory of a user over the last 24 hours before liquidation.
-func GetUserHfTrajectory(pool *pool.Pool, liq tps.LiquidationRecord) ([144]tps.UserHfRecord, error) {
+// Extracts the HF trajectory of a user over the last 24 hours before drop block.
+func GetUserHfTrajectory(pool *pool.Pool, db tps.HfDropBlock) ([144]tps.UserHfRecord, error) {
 	var usrrecords [144]tps.UserHfRecord
+	if db.DropBlock == nil {
+		return usrrecords, errors.New("drop block is nil cannot compute hf trajectory")
+	}
+
 	block := big.NewInt(0)
 	delta := big.NewInt(0)
 	for i := int64(0); i < 144; i++ {
 		delta.Mul(big.NewInt(i), big.NewInt(50))
-		block.Sub(liq.BlockNumber, delta)
+		block.Sub(db.DropBlock, delta)
 		// fmt.Printf("Block value is %v\n", block)
 
-		account, err := pool.GetUserAccountData(&bind.CallOpts{BlockNumber: block}, common.HexToAddress(liq.User))
+		account, err := pool.GetUserAccountData(&bind.CallOpts{BlockNumber: block}, common.HexToAddress(db.User))
 		if err != nil {
 			return usrrecords, err
 		}
 		usrrecords[144-i-1] = tps.UserHfRecord{
-			User:                        liq.User,
-			LiquidationBlock:            liq.BlockNumber,
+			User:                        db.User,
+			LiquidationBlock:            db.LiquidationBlock,
 			BlockNumber:                 new(big.Int).Set(block),
 			TotalCollateralBase:         account.TotalCollateralBase,
 			TotalDebtBase:               account.TotalDebtBase,
@@ -42,23 +47,26 @@ func GetUserHfTrajectory(pool *pool.Pool, liq tps.LiquidationRecord) ([144]tps.U
 	return usrrecords, nil
 }
 
-func GetUserHfTrajectories(pool *pool.Pool, liq []tps.LiquidationRecord) map[tps.LiquidationRecord][]tps.UserHfRecord {
+func GetUserHfTrajectories(pool *pool.Pool, db []tps.HfDropBlock) map[tps.HfDropBlock][]tps.UserHfRecord {
 	var trajectories tps.UserHfRecordAggregator
-	trajectories.Records = make(map[tps.LiquidationRecord][]tps.UserHfRecord)
+	trajectories.Records = make(map[tps.HfDropBlock][]tps.UserHfRecord)
 
 	var wg sync.WaitGroup
 	guard := make(chan struct{}, 4)
-	for i := range liq {
+	for i := range db {
+		if db[i].DropBlock == nil {
+			continue
+		}
 		wg.Add(1)
 		go func() {
 			guard <- struct{}{}
 			defer wg.Done()
 			// fmt.Println(liq[i])
-			ut, err := GetUserHfTrajectory(pool, liq[i])
+			ut, err := GetUserHfTrajectory(pool, db[i])
 			if err != nil {
 				panic(err)
 			}
-			trajectories.Extend(liq[i], ut[:])
+			trajectories.Extend(db[i], ut[:])
 			<-guard
 		}()
 	}
@@ -67,7 +75,7 @@ func GetUserHfTrajectories(pool *pool.Pool, liq []tps.LiquidationRecord) map[tps
 	return trajectories.Records
 }
 
-func SaveUserHfTrajectories(trjy map[tps.LiquidationRecord][]tps.UserHfRecord, path string) error {
+func SaveUserHfTrajectories(trjy map[tps.HfDropBlock][]tps.UserHfRecord, path string) error {
 	var t []tps.UserHfRecord
 	for _, rec := range trjy {
 		t = append(t, rec...)

@@ -24,36 +24,56 @@ func (rec *UserHfRecord) IsLess(r *UserHfRecord) bool {
 	return rec.BlockNumber.Cmp(r.BlockNumber) < 0
 }
 
-// Return true if hf > 1, else false
-func (rec *UserHfRecord) IsHealthy() bool {
-	return rec.HealthFactor.Cmp(big.NewInt(1000000000000000000)) > 0
+func (rec *UserHfRecord) IsLessThanBlock(b *big.Int) bool {
+	return rec.BlockNumber.Cmp(b) <= 0
 }
 
-// Return the index of last UserHfRecord with hf > 1
-func ArgMax(r []UserHfRecord) (int, error) {
-	if len(r) == 0 {
-		return 0, errors.New("cannot find argmax of empty slice")
+// // Return true if hf > 1, else false
+// func (rec *UserHfRecord) IsHealthy() bool {
+// 	return rec.HealthFactor.Cmp(big.NewInt(1000000000000000000)) > 0
+// }
+
+// // Return the index of last UserHfRecord with hf > 1
+// func ArgMax(r []UserHfRecord) (int, error) {
+// 	if len(r) == 0 {
+// 		return 0, errors.New("cannot find argmax of empty slice")
+// 	}
+// 	max := 0
+// 	for i, rec := range r {
+// 		if r[max].IsLess(&rec) && rec.IsHealthy() {
+// 			max = i
+// 		}
+// 	}
+// 	if max > 0 || r[0].IsHealthy() {
+// 		return max, nil
+// 	}
+// 	return 0, errors.New("could not find healthy hf in slice")
+// }
+
+func MinAfterBlock(trjy []UserHfRecord, b *big.Int) (UserHfRecord, error) {
+	if b.Cmp(trjy[len(trjy)-1].BlockNumber) >= 0 {
+		panic("b is higher or equal to max trjy")
 	}
-	max := 0
-	for i, rec := range r {
-		if r[max].IsLess(&rec) && rec.IsHealthy() {
-			max = i
+	m := trjy[len(trjy)-1]
+	for _, a := range trjy {
+		if a.IsLess(&m) && !a.IsLessThanBlock(b) {
+			m = a
 		}
 	}
-	if max > 0 || r[0].IsHealthy() {
-		return max, nil
+	if m == trjy[0] && m.IsLessThanBlock(b) {
+		return UserHfRecord{}, errors.New("could not find hf record after block")
 	}
-	return 0, errors.New("could not find healthy hf in slice")
+	return m, nil
 }
 
 // Map of records with safe access
 type UserHfRecordAggregator struct {
 	mu      sync.Mutex
-	Records map[LiquidationRecord][]UserHfRecord
+	Records map[HfDropBlock][]UserHfRecord
 }
 
 // Extends safely a slice of records
-func (agg *UserHfRecordAggregator) Extend(key LiquidationRecord, val []UserHfRecord) {
+func (agg *UserHfRecordAggregator) Extend(key HfDropBlock, val []UserHfRecord) {
 	agg.mu.Lock()
 	defer agg.mu.Unlock()
 	agg.Records[key] = val

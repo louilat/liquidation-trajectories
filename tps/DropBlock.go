@@ -3,15 +3,18 @@ package tps
 import (
 	"math/big"
 	"sync"
+	"time"
 )
 
 type HfDropBlock struct {
-	User             string   `json:"user"`
-	LiquidationBlock *big.Int `json:"liquidationBlock"`
-	LowerBound       *big.Int `json:"lowerBound"`
-	UpperBound       *big.Int `json:"upperBound"`
-	DropBlock        *big.Int `json:"dropBlock"`
-	Error            string   `json:"error"`
+	User             string    `json:"user"`
+	LiquidationBlock *big.Int  `json:"liquidationBlock"`
+	LowerBound       *big.Int  `json:"lowerBound"`
+	UpperBound       *big.Int  `json:"upperBound"`
+	DropBlock        *big.Int  `json:"dropBlock"`
+	DropBlockTime    time.Time `json:"dropBlockTime"`
+	UserCategory     int       `json:"userCategory"`
+	Error            string    `json:"error"`
 }
 
 type HfDropBlockAggregator struct {
