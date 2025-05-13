@@ -3,9 +3,13 @@ package classifier
 import (
 	"fmt"
 	"liquidation-trajectories/apirequest"
+	"liquidation-trajectories/pool"
 	"liquidation-trajectories/tps"
 	"math/big"
 	"time"
+
+	"github.com/ethereum/go-ethereum/accounts/abi/bind/v2"
+	"github.com/ethereum/go-ethereum/common"
 )
 
 // Return slice of user addresses who borrowed / withdrew / sent tokens during that day
@@ -45,7 +49,7 @@ func GetActiveUsers(date time.Time) ([]tps.ActivityRecord, error) {
 }
 
 // Return true if user did some actions 24h before drop block, that directly led to hf < 1.05, else false
-func WasUserActive24hBeforeDb(db tps.HfDropBlock, activity []tps.ActivityRecord, hftrjy []tps.UserHfRecord) (bool, error) {
+func WasUserActive24hBeforeDb(pool *pool.Pool, db tps.HfDropBlock, activity []tps.ActivityRecord, hftrjy []tps.UserHfRecord) (bool, error) {
 	// Find user activities 24h before liq and strictly before liq
 	user := hftrjy[0].User
 	var useract []tps.ActivityRecord
@@ -60,13 +64,20 @@ func WasUserActive24hBeforeDb(db tps.HfDropBlock, activity []tps.ActivityRecord,
 	} else {
 		// If user has some activities, check if block just after liq has hf <= 1.05
 		for _, a := range useract {
-			nexthf, err := tps.MinAfterBlock(hftrjy, a.BlockNumber)
+			resp, err := pool.GetUserAccountData(&bind.CallOpts{BlockNumber: a.BlockNumber}, common.HexToAddress(user))
 			if err != nil {
 				return false, err
 			}
-			if nexthf.HealthFactor.Cmp(big.NewInt(1050000000000000000)) <= 0 {
+			if resp.HealthFactor.Cmp(big.NewInt(1050000000000000000)) <= 0 {
 				return true, nil
 			}
+			// nexthf, err := tps.MinAfterBlock(hftrjy, a.BlockNumber)
+			// if err != nil {
+			// 	return false, err
+			// }
+			// if nexthf.HealthFactor.Cmp(big.NewInt(1050000000000000000)) <= 0 {
+			// 	return true, nil
+			// }
 		}
 	}
 	return false, nil
@@ -74,7 +85,7 @@ func WasUserActive24hBeforeDb(db tps.HfDropBlock, activity []tps.ActivityRecord,
 
 // Set UserCategory field of liquidations records to 3 for users
 // who borrwed / withdrew / sent atokens 24 hours before liquidation
-func FindActiveUsers(trajectories map[tps.HfDropBlock][]tps.UserHfRecord) ([]tps.HfDropBlock, error) {
+func FindUserCategory(pool *pool.Pool, trajectories map[tps.HfDropBlock][]tps.UserHfRecord) ([]tps.HfDropBlock, error) {
 	var dropblocks []tps.HfDropBlock
 	var actcache tps.ActiveUsersAggregator
 	actcache.Activity = make(map[int64][]tps.ActivityRecord)
@@ -101,13 +112,20 @@ func FindActiveUsers(trajectories map[tps.HfDropBlock][]tps.UserHfRecord) ([]tps
 		prevactivity := actcache.Activity[t.AddDate(0, 0, -1).Unix()]
 		activity = append(prevactivity, activity...)
 
-		wasactive, err := WasUserActive24hBeforeDb(db, activity, trjy)
+		wasactive, err := WasUserActive24hBeforeDb(pool, db, activity, trjy)
 		if err != nil {
 			return make([]tps.HfDropBlock, 0), err
 		}
+
 		if wasactive {
 			fmt.Println("was active")
 			db.UserCategory = 3
+		} else if tps.MaxHealthFactor(trjy).Cmp(big.NewInt(1200000000000000000)) >= 0 {
+			db.UserCategory = 1
+		} else if tps.MaxHealthFactor(trjy).Cmp(big.NewInt(1100000000000000000)) >= 0 {
+			db.UserCategory = 2
+		} else {
+			db.UserCategory = 4
 		}
 		dropblocks = append(dropblocks, db)
 	}

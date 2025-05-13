@@ -55,7 +55,7 @@ func Etl(start, stop time.Time, pool *pool.Pool, oracle *oracle.Oracle, client *
 	}
 	fmt.Printf("Done!\n")
 
-	dropblocks_activity, err := classifier.FindActiveUsers(hf_trjy)
+	dropblocks_activity, err := classifier.FindUserCategory(pool, hf_trjy)
 	if err != nil {
 		panic(err)
 	}

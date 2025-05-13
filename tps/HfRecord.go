@@ -1,7 +1,6 @@
 package tps
 
 import (
-	"errors"
 	"math/big"
 	"sync"
 )
@@ -19,13 +18,23 @@ type UserHfRecord struct {
 	HealthFactor                *big.Int `json:"healthFactor"`
 }
 
-// Compare to UserHfRecord based on blockNumber
-func (rec *UserHfRecord) IsLess(r *UserHfRecord) bool {
-	return rec.BlockNumber.Cmp(r.BlockNumber) < 0
-}
+// // Compare to UserHfRecord based on blockNumber
+// func (rec *UserHfRecord) IsLess(r *UserHfRecord) bool {
+// 	return rec.BlockNumber.Cmp(r.BlockNumber) < 0
+// }
 
-func (rec *UserHfRecord) IsLessThanBlock(b *big.Int) bool {
-	return rec.BlockNumber.Cmp(b) <= 0
+// func (rec *UserHfRecord) IsLessThanBlock(b *big.Int) bool {
+// 	return rec.BlockNumber.Cmp(b) <= 0
+// }
+
+func MaxHealthFactor(t []UserHfRecord) *big.Int {
+	max := t[0].HealthFactor
+	for _, r := range t {
+		if r.HealthFactor.Cmp(max) >= 0 {
+			max = r.HealthFactor
+		}
+	}
+	return max
 }
 
 // // Return true if hf > 1, else false
@@ -50,21 +59,21 @@ func (rec *UserHfRecord) IsLessThanBlock(b *big.Int) bool {
 // 	return 0, errors.New("could not find healthy hf in slice")
 // }
 
-func MinAfterBlock(trjy []UserHfRecord, b *big.Int) (UserHfRecord, error) {
-	if b.Cmp(trjy[len(trjy)-1].BlockNumber) >= 0 {
-		panic("b is higher or equal to max trjy")
-	}
-	m := trjy[len(trjy)-1]
-	for _, a := range trjy {
-		if a.IsLess(&m) && !a.IsLessThanBlock(b) {
-			m = a
-		}
-	}
-	if m == trjy[0] && m.IsLessThanBlock(b) {
-		return UserHfRecord{}, errors.New("could not find hf record after block")
-	}
-	return m, nil
-}
+// func MinAfterBlock(trjy []UserHfRecord, b *big.Int) (UserHfRecord, error) {
+// 	if b.Cmp(trjy[len(trjy)-1].BlockNumber) >= 0 {
+// 		panic("b is higher or equal to max trjy")
+// 	}
+// 	m := trjy[len(trjy)-1]
+// 	for _, a := range trjy {
+// 		if a.IsLess(&m) && !a.IsLessThanBlock(b) {
+// 			m = a
+// 		}
+// 	}
+// 	if m == trjy[0] && m.IsLessThanBlock(b) {
+// 		return UserHfRecord{}, errors.New("could not find hf record after block")
+// 	}
+// 	return m, nil
+// }
 
 // Map of records with safe access
 type UserHfRecordAggregator struct {

@@ -32,8 +32,8 @@ func main() {
 	}
 
 	// Run ETL
-	start := time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC)
-	stop := time.Date(2024, 2, 1, 0, 0, 0, 0, time.UTC)
+	start := time.Date(2024, 2, 1, 0, 0, 0, 0, time.UTC)
+	stop := time.Date(2025, 1, 1, 0, 0, 0, 0, time.UTC)
 	for ; start.Before(stop); start = start.AddDate(0, 1, 0) {
 		end := start.AddDate(0, 1, 0)
 		err = Etl(start, end, pool_ctr, orl, client)

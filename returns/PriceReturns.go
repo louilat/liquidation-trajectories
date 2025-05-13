@@ -159,6 +159,15 @@ func SavePriceReturns(pr []tps.PriceReturnRecord, path string) error {
 	if err != nil {
 		return err
 	}
+	if _, err := os.Stat(path); os.IsNotExist(err) {
+		err := os.MkdirAll(path, 0755)
+		if err != nil {
+			return err
+		}
+		fmt.Println("Directory created successfully.")
+	} else {
+		fmt.Println("Directory already exists.")
+	}
 	f, err := os.Create(path + "/price_returns.json")
 	if err != nil {
 		return err
